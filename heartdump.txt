@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+from time import sleep
+from datetime import datetime
+while True:
+	sleep(1)
+	date = datetime.now()
+	print(date, file=open("/var/log/heartbeat.txt", "a"))
