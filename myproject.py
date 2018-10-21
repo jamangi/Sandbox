@@ -125,6 +125,7 @@ def touch():
     user = check_user() #
     if type(user) == dict:
         return jsonify(user)
+    print(type(user))
 
     requires = [] # #
     failed = bad_request(requires)
