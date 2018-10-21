@@ -4,11 +4,23 @@ from flask_cors import CORS
 
 import db
 import nest
+# nest = {}
+from shell import create_file
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 cors = CORS(app, resources={r"/*": {"origins": "0.0.0.0"}})
-cleanup.start_cleaner()
+
+####################################################################################
+#### Debug Functions ####
+@app.route('/clear_containers')
+def clear():
+    '''
+        Removes containers from memory
+    '''
+    print("clearing containers")
+    nest.clear_containers()
+    return jsonify({'status': 'containers cleared'})
 
 ####################################################################################
 #### Auth Functions ####
@@ -16,7 +28,7 @@ def bad_request(requirements):
     '''
         Validates input
     '''
-     if not request.json:
+    if not request.json:
         return {"msg": "not json", "error": True}
     for req in requirements:
         if not request.json.get(req):
@@ -63,21 +75,21 @@ def create_user():
     '''
         Creates new user
     '''
-    requires = ["username", "password", "character"]
+    requires = ["username", "password"]
     failed = bad_request(requires)
     if failed is not None:
         return jsonify(failed)
 
     username = request.json['username']
     password = request.json['password']
-    character = request.json['character']
+    character = "goku"
     
     user = db.create_user(username, password, character)
     if user is None:
         return jsonify({"msg":"username taken", "error": True})
 
     user.touch()
-    return jsonify(return_user(user))
+    return jsonify({"user" : return_user(user)})
 
 @app.route('/get')
 @app.route('/get/<username>')
@@ -97,6 +109,21 @@ def get_user(username=None):
         return {"msg": "could not find user", "error": True}
     else:
         return {"user": user}
+
+@app.route('/touch', methods=["POST"])
+def touch():
+    ''' Send alive signal '''
+    user = check_user() #
+    if user is None:
+        return jsonify({"msg": "username and password combination not found", "error": True})
+
+    requires = [] # #
+    failed = bad_request(requires)
+    if failed is not None:
+        return jsonify(failed)
+
+    user.touch() # # # #
+    return jsonify({"user" : return_user(user)})
 
 @app.route('/update', methods=["POST"])
 def update_user():
@@ -120,10 +147,10 @@ def update_user():
                           password=password, character=character,
                           location=location)
     if user is None:
-        return jsonify({"msg":"server update error", "error": True})
+        return jsonify({"msg":"update user error", "error": True})
 
     user.touch() # # # # return user, users, or scripts
-    return jsonify(return_user(user))
+    return jsonify({"user" : return_user(user)})
 
 ###############################################################################################
 ##### Routes #####
@@ -146,22 +173,7 @@ def check_container():
         return jsonify({"msg": "no container", "error": True})
 
     user.touch() # # # #
-    return jsonify(return_user(user))
-
-@app.route('/touch', methods=["POST"])
-def touch():
-    ''' Send alive signal '''
-    user = check_user() #
-    if user is None:
-        return jsonify({"msg": "username and password combination not found", "error": True})
-
-    requires = [] # #
-    failed = bad_request(requires)
-    if failed is not None:
-        return jsonify(failed)
-
-    user.touch() # # # #
-    return jsonify(return_user(user))
+    return jsonify({"user" : return_user(user)})
 
 
 ###############################################################################################
@@ -201,11 +213,9 @@ def collect():
         return jsonify({"msg": "you've already collected this script", "error": True})
    
 
-    container = nest.load_container(user.id)
+    container = nest.load_container(user.id) #/// 
     file_obj = create_file(filename, text, row, col)
     result = nest.run_file(user.id, file_obj) # upgrade to use create file internally
-    result['filename'] = filename;
-    result['filetext'] = text;
 
     if result["has_heart"] == None or result["has_heart"] == False:
         user.form = 'ghost'
@@ -220,9 +230,10 @@ def collect():
             user.add_material(script.material)
             author.add_material(script.material)
     db.save()
-    
+
+    result['script'] = script.to_dict();
     user.touch() # # # #
-    return jsonify(return_user(user))
+    return jsonify({"user" : return_user(user), "result": result})
 
 @app.route('/drop', methods=["POST"])
 def drop():
@@ -263,40 +274,6 @@ def drop():
     script['user'] = res
     return jsonify({"script" : script, "user": res})
 
-@app.route('/dump', methods = ["POST"])
-def dump_scripts():
-    '''
-        Upload script from file
-    '''
-    user_ip = request.remote_addr
-    user = db.get_user_by_ip(user_ip) 
-    if user is None:
-        return jsonify({"msg": "ip not set", "error": True})
-    user.touch()
-
-    f = request.files['file']
-    filename = f.filename
-    row = 0
-    col = 0
-    text = f.read().decode("utf-8")
-
-    if user.form == 'ghost':
-        return jsonify({"msg": "you're a ghost", "error": True})
-
-
-    user.material += 1;
-    file_obj = create_file(user_ip, filename, text, row, col)
-    material = nest.test_file(file_obj)
-    
-    new_file = db.create("Script", user_id=user.id, material=material,
-              filename=filename, filetext=text, filetype=file_obj['filetype'],
-              row=row, col=col, location=user.location)
-    db.save()
-    res = user.to_dict()
-    del res['ip']
-    script = new_file.to_dict()
-    script['user'] = res
-    return jsonify({"script" : script, "user": res})
 
 @app.route('/edit', methods=["POST"])
 def edit():

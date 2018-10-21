@@ -2,10 +2,18 @@ import docker
 from time import sleep
 
 import db
-import fundamentals
+import shell
 
 client = docker.from_env()
 NEST = {}
+
+def clear_containers():
+    '''
+        TEMP FUNC: clears all containers from memory 
+    '''
+    for user_id, container in NEST.items():
+        remove_container(user_id)
+
 
 def heal_container(container):
     '''puts heart into container'''
@@ -18,15 +26,15 @@ def heal_container(container):
     row = 0
     col = 0
 
-    file_obj = fundamentals.create_file("1", filename, text, row, col)
+    file_obj = shell.create_file("1", filename, text, row, col)
     file_id = file_obj['fileid']
     file_name = file_obj['filename']
     file_type = file_obj['filetype']
-    copy_good = fundamentals.copy_file(c_name, file_id, file_name)
+    copy_good = shell.copy_file(c_name, file_id, file_name)
 
     responding = check_container(c_name)
     if responding:
-        has_heart = fundamentals.extract_heart(c_name)
+        has_heart = shell.extract_heart(c_name)
     else:
         has_heart = None
 
@@ -55,7 +63,7 @@ def save_container(user_id, container):
                      tag=user.container_version)
     print("saving container: {}".format(user_id))
     # client.images.push(repo)
-    fundamentals.push_image(user_id, user.container_version)
+    shell.push_image(user_id, user.container_version)
     return True
 
 def load_container(user_id, version=None):
@@ -127,22 +135,22 @@ def run_file(user_id, file_obj):
     file_name = file_obj['filename']
     file_type = file_obj['filetype']
 
-    copy_good = fundamentals.copy_file(c_name, file_id, file_name)
+    copy_good = shell.copy_file(c_name, file_id, file_name)
     print("before execute file {}".format(file_name))
     if not check_container(c_name):
         print("container not alive, resetting it")
         container = new_container(user_id)
         c_name = container.name
-        copy_good = fundamentals.copy_file(c_name, file_id, file_name)
+        copy_good = shell.copy_file(c_name, file_id, file_name)
 
-    output = fundamentals.execute_file(c_name, file_name, file_type)
+    output = shell.execute_file(c_name, file_name, file_type)
     if output:
         output = output.decode('utf-8')
         print("output: {}".format(output))
     print("after execute file")
     responding = check_container(c_name)
     if responding:
-        has_heart = fundamentals.extract_heart(c_name)
+        has_heart = shell.extract_heart(c_name)
     else:
         has_heart = None
 
@@ -161,13 +169,13 @@ def test_file(file_obj):
     file_name = file_obj['filename']
     file_type = file_obj['filetype']
 
-    copy_good = fundamentals.copy_file(c_name, file_id, file_name)
+    copy_good = shell.copy_file(c_name, file_id, file_name)
     if copy_good:
         status = "success"
     else:
         status = "failure"
     print("copy file {} inside container {} - {}".format(file_name, c_name, status))
-    exec_good = fundamentals.execute_file(c_name, file_name, file_type)
+    exec_good = shell.execute_file(c_name, file_name, file_type)
     print()
 
     if exec_good is not None:
@@ -185,7 +193,7 @@ def test_file(file_obj):
     print("container is {}".format(status))
 
     if responding:
-        has_heart = fundamentals.extract_heart(c_name)
+        has_heart = shell.extract_heart(c_name)
     else:
         has_heart = None
 
