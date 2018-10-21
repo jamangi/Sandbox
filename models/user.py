@@ -37,9 +37,13 @@ class User(BaseModel):
             Checks for username password combination
         '''
         all_users = models.storage.all('User')
+        print("checking: {} {}".format(username, password))
         for user in all_users.values():
+            print("user: {} {}".format(user.username, user.password))
             if (user.username == username) and (user.password == password):
+                print("found match")
                 return user
+        print("no match")
         return None
 
     @staticmethod

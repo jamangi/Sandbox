@@ -32,6 +32,7 @@ def create_user(username, password, character):
 		print("** user already exists **")
 		return None
 	new_user = create("User", username=username, character=character, form=character)
+	new_user.save()
 	return new_user
 
 
