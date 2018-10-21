@@ -46,7 +46,7 @@ def execute_file(container_name, filename, filetype):
         if output:
             return output.decode('utf-8')
         else:
-            return "no output"
+            return "none"
     except Exception as e:
         return None
 
