@@ -6,6 +6,7 @@ import shell
 
 client = docker.from_env()
 NEST = {}
+IMG = "rubyshadows/heartbeat:v1"
 
 def clear_containers():
     '''
@@ -20,8 +21,8 @@ def heal_container(container):
     c_name = container.name
 
     filename = "heart"
-    text = ";)"
-    with open("heart", 'r') as fd:
+    text = ""
+    with open(filename, 'r') as fd:
         text = fd.read()
     row = 0
     col = 0
@@ -30,107 +31,64 @@ def heal_container(container):
     file_id = file_obj['fileid']
     file_name = file_obj['filename']
     file_type = file_obj['filetype']
-    copy_good = shell.copy_file(c_name, file_id, file_name)
 
     responding = check_container(c_name)
     if responding:
+        shell.copy_file(c_name, file_id, file_name)
         has_heart = shell.extract_heart(c_name)
     else:
         has_heart = None
 
     return {"has_heart": has_heart}
 
-def save_container(user_id, container):
+def save_container(user):
     '''
         Commit and save container to dockerhub
     '''
-    user = db.get("User", user_id)
+    pass
 
-    if user is None:
-        return None
-
-    if container is None:
-        return None
-
-    heal_container(container)
-
-    user.container_version += 1
-    db.save()
-
-    repo = "rubyshadows/{}".format(user_id)
-    container.commit(repository=repo,
-                     author=user.name,
-                     tag=user.container_version)
-    print("saving container: {}".format(user_id))
-    # client.images.push(repo)
-    shell.push_image(user_id, user.container_version)
-    return True
-
-def load_container(user_id, version=None):
+def load_container(user):
     '''
         TODO: Pull container from dockerhub and return it
         If none on dockerhub, create new one
     '''
-    if NEST.get(user_id) != None:
-        return NEST.get(user_id);
-    #remove_container(user_id)
-
-    user = db.get("User", user_id)
-
-    repo = "rubyshadows/{}".format(user_id)
-    if version is None:
-        version = user.container_version
-    full = "{}:{}".format(repo, version)
-    try:
-        print("pulling image from repo")
-        img = client.images.pull(repo, tag=str(version))
-        print("client.images.pull: {}".format(img))
-        container = client.containers.run(full, command="bash heart", detach=True)
-        NEST[user_id] = container
-        print("successful pull: {}".format(user_id))
-        return container
-    except (docker.errors.ImageNotFound, docker.errors.APIError) as e:
-        print("remote image not found: {}".format(full))
-        print(e)
-        print("creating new container\n")
-        return new_container(user_id)
+    if NEST.get(user.id) != None:
+        return NEST.get(user.id);
+    return new_container(user)
 
 
-def new_container(user_id):
+def new_container(user):
     '''
         Remove old container and create new one
     '''
-    remove_container(user_id)
-    container = client.containers.run('rubyshadows/heartbeat:v1', detach=True) 
-    NEST[user_id] = container
-    return container
+    remove_container(user)
+    NEST[user.id] = client.containers.run(IMG, detach=True) 
+    user.container_name = NEST[user.id].name
+    return NEST[user.id]
 
-def user_container(user_id):
+def user_container(user):
     '''
         Finds running container on machine and returns it
     '''
-    return NEST.get(user_id)
+    return NEST.get(user.id)
 
-def remove_container(user_id):
+def remove_container(user):
     '''
         Remove container from memory
-    '''
-    container = NEST.get(user_id)
-    if container == None:
+    ''' 
+    if NEST.get(user.id) == None:
         return
     else:
-        del NEST[user_id]
-        #save_container(user_id, container)
+        container = NEST.get(user.id)
+        # save_container(user)
+        del NEST[user.id]
         container.remove(force=True)
 
-def run_file(user_id, file_obj):
+def run(container, file_obj):
     '''
-        Run a file within container, return output and hasHeart
+        Run file inside container, return output and hasHeart
     '''
-    container = NEST.get(user_id)
     c_name = container.name
-    print()
-    print("User {}: {}".format(user_id, c_name))
     file_id = file_obj['fileid']
     file_name = file_obj['filename']
     file_type = file_obj['filetype']
@@ -154,51 +112,6 @@ def run_file(user_id, file_obj):
     else:
         has_heart = None
 
-    print("Heart: {}\n".format(has_heart))
-    return {"output": output, "has_heart": has_heart}
-
-
-def test_file(file_obj):
-    """ Copy file into container, execute file in container, return output """
-    testtube = client.containers.run('rubyshadows/heartbeat:v1', detach=True) 
-
-    c_name = testtube.name
-    print()
-    print("testtube name: {}".format(c_name))
-    file_id = file_obj['fileid']
-    file_name = file_obj['filename']
-    file_type = file_obj['filetype']
-
-    copy_good = shell.copy_file(c_name, file_id, file_name)
-    if copy_good:
-        status = "success"
-    else:
-        status = "failure"
-    print("copy file {} inside container {} - {}".format(file_name, c_name, status))
-    exec_good = shell.execute_file(c_name, file_name, file_type)
-    print()
-
-    if exec_good is not None:
-        status = "success"
-    else:
-        status = "failure"
-    print("execute {} {} inside of container {} - {}".format(file_type, file_name, c_name, status))
-    print()
-
-    responding = check_container(c_name)
-    if responding:
-        status = "responding"
-    else:
-        status = "not responding"
-    print("container is {}".format(status))
-
-    if responding:
-        has_heart = shell.extract_heart(c_name)
-    else:
-        has_heart = None
-
-    print("container heart: {}".format(has_heart))
-
     material = 0
 
     if "python" in file_type:
@@ -208,17 +121,29 @@ def test_file(file_obj):
     else:
         material = 10
 
-    if exec_good is not None:
-        if (not has_heart) or (not responding):
+    if output is not None:
+        if has_heart:
+            pass
+        else:
             material *= 10
     else:
         material = 0
 
-    print("material value: {}".format(material))
+    return {"output": output, "file_obj":file_obj, "has_heart": has_heart, "material": material}
 
-    testtube.remove(force=True)
 
-    return material
+def run_file(user, file_obj):
+    '''
+        Run a file within container, return output and hasHeart
+    '''
+    container = NEST.get(user.id)
+    return run(container, file_obj)
+
+
+def test_file(file_obj):
+    """ Copy file into container, execute file in container, return output """
+    testtube = client.containers.run(IMG, detach=True) 
+    return run(testtube, file_obj)
 
 def check_container(container_name):
     """ Checks whether container is running """

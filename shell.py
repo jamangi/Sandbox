@@ -63,7 +63,9 @@ def extract_heart(container_name):
         return False
 
 def read_shebang(filename, text):
-    """ Read shebang and deduce programming language """
+    """ Read shebang and deduce programming language 
+        The shebang takes priority over the filename
+    """
     lines = text.splitlines()
     if lines[0][0] == "#":
         comment = lines[0]
@@ -74,7 +76,16 @@ def read_shebang(filename, text):
             interpreter = comment[i] + interpreter
         return interpreter
     else:
-        return 'bash'
+        interpreter = ''
+        for i in range(len(filename)-1, -1, -1):
+            if filename[i] == '.':
+                break
+            interpreter = filename[i] + interpreter
+        supports = [('py', 'python3'), ('c', 'c'), ('rb', 'ruby')]
+        # for lang in supports:
+        #     if lang[0] == interpreter:
+        #         return lang[1]
+    return 'bash'
 
 def create_file(filename, text, row, col):
     """ Create file in staging direcory """
