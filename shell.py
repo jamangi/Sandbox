@@ -43,14 +43,13 @@ def execute_file(container_name, filename, filetype):
     '''
     try:
         output = subprocess.check_output(["sudo", "docker", "exec", container_name,
-                                          filetype, "/home/{}".format(filename),
-                                          "2>&1", '|', 'cat'])
+                                          filetype, "/home/{}".format(filename)])
         if output:
             return {"output": output.decode('utf-8'), "error":False}
         else:
             return {"output": "none", "error":False}
     except Exception as e:
-        return {"output": str(e), "error":True}
+        return {"output": "execution error", "error":True}
 
 def extract_heart(container_name):
     '''
