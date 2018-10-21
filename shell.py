@@ -42,7 +42,9 @@ def execute_file(container_name, filename, filetype):
         Execute file within container
     '''
     try:
-        output = subprocess.check_output(["sudo", "docker", "exec", container_name, filetype, "/home/{}".format(filename)])
+        output = subprocess.check_output(["sudo", "docker", "exec", container_name,
+                                          filetype, "/home/{}".format(filename),
+                                          "2>&1", '|', 'cat'])
         if output:
             return {"output": output.decode('utf-8'), "error":False}
         else:
