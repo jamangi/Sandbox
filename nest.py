@@ -94,18 +94,10 @@ def run(container, file_obj):
     file_type = file_obj['filetype']
 
     copy_good = shell.copy_file(c_name, file_id, file_name)
-    print("before execute file {}".format(file_name))
-    if not check_container(c_name):
-        print("container not alive, resetting it")
-        container = new_container(user_id)
-        c_name = container.name
-        copy_good = shell.copy_file(c_name, file_id, file_name)
-
     output = shell.execute_file(c_name, file_name, file_type)
     if output:
         output = output.decode('utf-8')
         print("output: {}".format(output))
-    print("after execute file")
     responding = check_container(c_name)
     if responding:
         has_heart = shell.extract_heart(c_name)
@@ -137,6 +129,9 @@ def run_file(user, file_obj):
         Run a file within container, return output and hasHeart
     '''
     container = NEST.get(user.id)
+    if not check_container(container.name):
+        print("container not alive, resetting it")
+        container = new_container(user.id)
     return run(container, file_obj)
 
 
