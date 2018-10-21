@@ -31,7 +31,7 @@ def create_user(username, password, character):
 	if user is not None:
 		print("** user already exists **")
 		return None
-	new_user = create("User", username=username, character=character, form=character)
+	new_user = create("User", username=username, password=password, character=character, form=character)
 	new_user.save()
 	return new_user
 

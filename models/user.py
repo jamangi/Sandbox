@@ -19,7 +19,6 @@ class User(BaseModel):
         self.container_name = ''
         self.unusual_death = False
 
-        self.name = ''
         self.location = 'training'
         self.character = 'titan'
         self.form = 'titan'
