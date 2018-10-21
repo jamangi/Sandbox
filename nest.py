@@ -95,9 +95,7 @@ def run(container, file_obj):
 
     copy_good = shell.copy_file(c_name, file_id, file_name)
     output = shell.execute_file(c_name, file_name, file_type)
-    if output:
-        output = output.decode('utf-8')
-        print("output: {}".format(output))
+    print("output: {}".format(output))
     responding = check_container(c_name)
     if responding:
         has_heart = shell.extract_heart(c_name)

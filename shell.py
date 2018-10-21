@@ -44,9 +44,9 @@ def execute_file(container_name, filename, filetype):
     try:
         output = subprocess.check_output(["sudo", "docker", "exec", container_name, filetype, "/home/{}".format(filename)])
         if output:
-            return output
+            return output.decode('utf-8')
         else:
-            return False
+            return "no output"
     except Exception as e:
         return None
 
