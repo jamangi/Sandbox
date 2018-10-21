@@ -70,7 +70,7 @@ def update(cls, uid, **kwargs):
 	'''
 		Update instance to have desired attributes
 	'''
-	instance = models.get(cls, uid)
+	instance = models.storage.get(cls, uid)
 	if instance is None:
 		print("** no instance found **")
 		return None
