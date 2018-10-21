@@ -444,10 +444,7 @@ def test():
     row = request.json['row']
     col = request.json['col']
     file_obj = create_file(filename, text, row, col)
-    print("filename: {}\nfiletext: {}\nuser_ip: {} file_obj: {}".format(filename, 
-                                                                        text, 
-                                                                        user_ip, 
-                                                                        file_obj))
+    print("filename: {}\nfiletext: {} file_obj: {}".format(filename, text, file_obj))
     result = nest.test_file(file_obj)
     # # # #
     return jsonify({"result": result})
