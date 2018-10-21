@@ -153,7 +153,7 @@ def update_user():
     password = request.json['password']
     character = request.json['character']
 
-    user = db.update_user("User", user.id, username=username,
+    user = db.update("User", user.id, username=username,
                           password=password, character=character,
                           location=location)
     if user is None:
