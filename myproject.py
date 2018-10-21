@@ -140,7 +140,7 @@ def update_user():
     '''
         Update user in database
     '''
-    user = check_user(username, password) # check user
+    user = check_user() # check user
     if type(user) == dict:
         return jsonify(user)
 
