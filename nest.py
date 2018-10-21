@@ -117,7 +117,7 @@ def run(container, file_obj):
     else:
         material = 10
 
-    if output is not None:
+    if output.get('error') is False:
         if has_heart:
             pass
         else:
@@ -125,7 +125,7 @@ def run(container, file_obj):
     else:
         material = 0
 
-    return {"output": output, "file_obj":file_obj, "has_heart": has_heart, "material": material}
+    return {"output": output.get('output'), "file_obj":file_obj, "has_heart": has_heart, "material": material}
 
 
 def run_file(user, file_obj):
