@@ -12,8 +12,8 @@ def clear_containers():
     '''
         TEMP FUNC: clears all containers from memory 
     '''
-    for user_id, container in NEST.items():
-        remove_container(user_id)
+    for container in client.containers.list():
+        kill(container)
 
 
 def heal_container(container):
@@ -72,6 +72,12 @@ def user_container(user):
     '''
     return NEST.get(user.id)
 
+def kill(container):
+    '''
+        Remove a container from memory
+    '''
+    container.remove(force=True)
+
 def remove_container(user):
     '''
         Remove container from memory
@@ -82,7 +88,7 @@ def remove_container(user):
         container = NEST.get(user.id)
         # save_container(user)
         del NEST[user.id]
-        container.remove(force=True)
+        kill(container)
 
 def run(container, file_obj):
     '''
@@ -136,7 +142,9 @@ def run_file(user, file_obj):
 def test_file(file_obj):
     """ Copy file into container, execute file in container, return output """
     testtube = client.containers.run(IMG, detach=True) 
-    return run(testtube, file_obj)
+    result = run(testtube, file_obj)
+    kill(testtube);
+    return result
 
 def check_container(container_name):
     """ Checks whether container is running """
