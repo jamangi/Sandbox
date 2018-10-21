@@ -61,6 +61,15 @@ def return_user(user):
     del ret['password']
     return ret
 
+def return_script(user, script):
+    '''
+        Return a script dict
+    '''
+    ret = script.to_dict()
+    ret['user'] = return_user(user)
+    return ret
+
+
 ##################################################################################
 ##### User Crud #####
 @app.route('/')
@@ -264,15 +273,11 @@ def drop():
     material = nest.test_file(file_obj) 
     # test file upgrades to use create file internally & return fileobj with material
     
-    new_file = db.create("Script", user_id=user.id, material=material,
+    script = db.create("Script", user_id=user.id, material=material,
               filename=filename, filetext=text, filetype=file_obj['filetype'],
               row=row, col=col, location=user.location)
     db.save()
-    res = user.to_dict()
-    del res['ip']
-    script = new_file.to_dict()
-    script['user'] = res
-    return jsonify({"script" : script, "user": res})
+    return jsonify({"script" : return_script(user, script), "user": return_user(user)})
 
 
 @app.route('/edit', methods=["POST"])
