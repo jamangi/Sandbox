@@ -152,6 +152,7 @@ def update_user():
     username = request.json['username'] # # # do algorithm
     password = request.json['password']
     character = request.json['character']
+    location = request.json['location']
 
     user = db.update("User", user.id, username=username,
                           password=password, character=character,
