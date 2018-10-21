@@ -49,7 +49,7 @@ def check_user():
 
     user = db.check_user(username, password)
     if user is None:
-        return {"msg": "no {}".format(req), "error": True}
+        return {"msg": "username or password not found"}
     else:
         return user
 
