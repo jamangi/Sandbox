@@ -49,7 +49,7 @@ def check_user():
 
     user = db.check_user(username, password)
     if user is None:
-        return None
+        return {"msg": "no {}".format(req), "error": True}
     else:
         return user
 
@@ -123,8 +123,8 @@ def get_user(username=None):
 def touch():
     ''' Send alive signal '''
     user = check_user() #
-    if user is None:
-        return jsonify({"msg": "username and password combination not found", "error": True})
+    if type(user) == dict:
+        return jsonify(user)
 
     requires = [] # #
     failed = bad_request(requires)
@@ -140,8 +140,8 @@ def update_user():
         Update user in database
     '''
     user = check_user(username, password) # check user
-    if user is None:
-        return jsonify({"msg": "username and password combination not found", "error": True})
+    if type(user) == dict:
+        return jsonify(user)
 
     requires = ["username", "password", "character", "location"] # # check require - user could be failure object
     failed = bad_request(requires)
@@ -169,8 +169,8 @@ def check_container():
         template code for route functions
     '''
     user = check_user() #
-    if user is None:
-        return jsonify({"msg": "username and password combination not found", "error": True})
+    if type(user) == dict:
+        return jsonify(user)
 
     requires = [] # #
     failed = bad_request(requires)
@@ -193,8 +193,8 @@ def check_container():
 def collect():
     ''' Execute inside user container and update database '''
     user = check_user() #
-    if user is None:
-        return jsonify({"msg": "username and password combination not found", "error": True})
+    if type(user) == dict:
+        return jsonify(user)
 
     requires = ["fileid"] # #
     failed = bad_request(requires)
