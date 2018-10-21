@@ -77,7 +77,6 @@ def update(cls, uid, **kwargs):
 	try:
 		for key, value in kwargs.items():
 			setattr(instance, key, value)
-		instance.save()
 		return instance
 
 	except Exception as e:

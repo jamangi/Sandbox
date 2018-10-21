@@ -156,10 +156,11 @@ def update_user():
 
     user = db.update("User", user.id, username=username,
                           password=password, character=character,
-                          location=location)
+                          form=character, location=location)
     if user is None:
         return jsonify({"msg":"update user error", "error": True})
 
+    db.save()
     user.touch() # # # # return user, users, or scripts
     return jsonify({"user" : return_user(user)})
 
